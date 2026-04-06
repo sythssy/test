@@ -13,8 +13,18 @@ type MeApiResponse =
  */
 export const getCurrentUserProfile = cache(async (): Promise<DbUserProfile | null> => {
   const res = await internalRequest("/api/me");
-  if (res.status === 401) return null;
-  const json = (await res.json()) as MeApiResponse;
+  if (!res.ok) return null;
+
+  const text = await res.text();
+  if (!text) return null;
+
+  let json: MeApiResponse;
+  try {
+    json = JSON.parse(text) as MeApiResponse;
+  } catch {
+    return null;
+  }
+
   if (!json.ok || !("profile" in json) || !json.profile) return null;
   return json.profile;
 });
